@@ -1,0 +1,23 @@
+{
+  "name": "@mbrandau/r6s-stats",
+  "version": "1.0.0",
+  "description": "This API queries the Rainbow Six Siege stats from any given player by name or uplayID. Multiple and mixed requests at one are also possible.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mbrandau/r6s-stats.git"
+  },
+  "author": "Maximilian Brandau, Seems2Legit, Julian Gassner, K4CZP3R",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/mbrandau/r6s-stats/issues"
+  },
+  "homepage": "https://github.com/mbrandau/r6s-stats#readme",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "object.fromentries": "^2.0.2"
+  }
+}
