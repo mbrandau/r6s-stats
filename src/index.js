@@ -1,5 +1,5 @@
 const axios = require('axios');
-const {normalStatistics, operatorOrganisations} = require('./constants');
+const {generalOperatorStatistics, operatorOrganisations, allStatistics} = require('./constants');
 const fromEntries = require('object.fromentries');
 
 class R6sStats {
@@ -103,8 +103,8 @@ class R6sStats {
         return profiles[0];
     }
 
-    async getStatsRaw(playerIds, stats, platform = 'uplay') {
-        const user = playerIds.split(",")[0];
+    async getStatistics(playerIds, stats, platform = 'uplay') {
+        const user = playerIds[0];
         const requestUrls = {
             "uplay":
                 "https://public-ubiservices.ubi.com/v1/spaces/5172a557-50b5-4665-b7db-e3f2e8c5041d/sandboxes/OSBOR_PC_LNCH_A/playerstats2/statistics",
@@ -114,9 +114,9 @@ class R6sStats {
                 "https://public-ubiservices.ubi.com/v1/spaces/05bfb3f7-6c21-4c42-be1f-97a33fb5cf66/sandboxes/OSBOR_PS4_LNCH_A/playerstats2/statistics"
         };
 
-        const requestUrl = `${requestUrls[platform]}?populations=${playerIds}&statistics=${stats}`;
+        const requestUrl = `${requestUrls[platform]}?populations=${playerIds.join(',')}&statistics=${stats.join(',')}`;
 
-        return (await axios(requestUrl,
+        const {results} = (await axios(requestUrl,
             {
                 headers: {
                     'Ubi-AppId': '39baebad-39e5-4552-8c25-2c9b919064e2',
@@ -127,21 +127,38 @@ class R6sStats {
                     'Origin': 'https://game-rainbow6.ubi.com',
                 }
             })).data;
+
+        return fromEntries(Object.entries(results).map(([playerId, statistics]) => {
+            return [playerId, fromEntries(Object.entries(statistics).map(([key, value]) => {
+                return [key.replace(':infinite', ''), value]
+            }))]
+        }))
+    }
+
+    getOperatorUniqueStatistics() {
+        return this.operators
+            .map(op => op.uniqueStatistic.pvp)
+            .filter(pvp => !!pvp)
+            .map(pvp => pvp.statisticId);
     }
 
     async getOperators(playerIds, platform = 'uplay') {
-        const operatorStatistics = this.operators
-            .map(op => op.uniqueStatistic.pvp)
-            .filter(pvp => !!pvp)
-            .map(pvp => pvp.statisticId.split(':')[0]);
-        const {results} = await this.getStatsRaw(playerIds, [...normalStatistics, ...operatorStatistics], platform);
+        const results = await this.getStatistics(playerIds, [...generalOperatorStatistics, ...this.getOperatorUniqueStatistics()], platform);
+        return this.formatOperatorStatistics(results)
+    }
 
+    formatOperatorStatistics(statistics) {
         const rs = {};
-        Object.entries(results).forEach(([playerId, statistics]) => rs[playerId] = this.operators.map(op => {
+        Object.entries(statistics).forEach(([playerId, statistics]) => rs[playerId] = this.operators.map(op => {
             const opStats = {};
-            Object.entries(statistics)
-                .filter(([stat, value]) => stat.indexOf(op.index) >= 0)
-                .forEach(([stat, value]) => opStats[stat.split(':')[0]] = value);
+
+            const specificKey = op.uniqueStatistic.pvp && op.uniqueStatistic.pvp.statisticId;
+            generalOperatorStatistics.forEach(key => opStats[key] = statistics[`${key}:${op.index}`] || 0);
+            if (specificKey) opStats[specificKey] = statistics[specificKey] || 0;
+            Object.entries(statistics).forEach(([key, value]) => {
+                if (key.split(':', 2)[1] === op.index) opStats[key] = value
+            });
+
             return {
                 operator: op,
                 statistics: opStats
@@ -151,7 +168,7 @@ class R6sStats {
     }
 
     async getRanking(playerIds, season = -1, region = 'emea', platform = 'uplay') {
-        const user = playerIds.split(',')[0];
+        const user = playerIds[0];
         const requestUrls = {
             "uplay":
                 "https://public-ubiservices.ubi.com/v1/spaces/5172a557-50b5-4665-b7db-e3f2e8c5041d/sandboxes/OSBOR_PC_LNCH_A/r6karma/players",
@@ -160,7 +177,7 @@ class R6sStats {
             "psn":
                 "https://public-ubiservices.ubi.com/v1/spaces/05bfb3f7-6c21-4c42-be1f-97a33fb5cf66/sandboxes/OSBOR_PS4_LNCH_A/r6karma/players"
         };
-        const requestUrl = `${requestUrls[platform]}?board_id=pvp_ranked&profile_ids=${playerIds}&region_id=${region}&season_id=${season}`;
+        const requestUrl = `${requestUrls[platform]}?board_id=pvp_ranked&profile_ids=${playerIds.join(',')}&region_id=${region}&season_id=${season}`;
 
         const {players} = (await axios(requestUrl,
             {
@@ -182,7 +199,7 @@ class R6sStats {
     }
 
     async getProgression(playerIds, platform = 'uplay') {
-        const user = playerIds.split(',')[0];
+        const user = playerIds[0];
         const requestUrls = {
             "uplay":
                 "https://public-ubiservices.ubi.com/v1/spaces/5172a557-50b5-4665-b7db-e3f2e8c5041d/sandboxes/OSBOR_PC_LNCH_A/r6playerprofile/playerprofile/progressions",
@@ -192,7 +209,7 @@ class R6sStats {
                 "https://public-ubiservices.ubi.com/v1/spaces/05bfb3f7-6c21-4c42-be1f-97a33fb5cf66/sandboxes/OSBOR_PS4_LNCH_A/r6playerprofile/playerprofile/progressions"
         };
 
-        const requestUrl = `${requestUrls[platform]}?profile_ids=${playerIds}`;
+        const requestUrl = `${requestUrls[platform]}?profile_ids=${playerIds.join(',')}`;
         return (await axios(requestUrl,
             {
                 headers: {
@@ -203,7 +220,31 @@ class R6sStats {
                     'Accept-Language': 'en-US',
                     'Origin': 'https://game-rainbow6.ubi.com',
                 }
-            })).data;
+            })).data.player_profiles;
+    }
+
+    async getAllStatistics(playerIds, region = 'emea', season = -1, platform = 'uplay') {
+        const results = {};
+        const [
+            progressions,
+            rankInfo,
+            statistics
+        ] = await Promise.all([
+            this.getProgression(playerIds, platform),
+            this.getRanking(playerIds, season, region, platform),
+            this.getStatistics(playerIds, allStatistics, platform)
+        ]);
+        const operators = this.formatOperatorStatistics(statistics);
+
+        playerIds.forEach(id => {
+            results[id] = {
+                operators: operators[id],
+                progression: progressions.find(p => p.profile_id === id),
+                rank: rankInfo[id],
+                statistics: fromEntries(Object.entries(statistics[id]).filter(([key]) => !key.startsWith("operatorpvp_")))
+            }
+        })
+        return results;
     }
 
 }

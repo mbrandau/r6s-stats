@@ -1,4 +1,4 @@
-const normalStatistics = [
+const generalOperatorStatistics = [
     "operatorpvp_roundlost",
     "operatorpvp_death",
     "operatorpvp_roundwon",
@@ -6,6 +6,60 @@ const normalStatistics = [
     "operatorpvp_death",
     "operatorpvp_timeplayed"
 ];
+const generalStatistics = [
+    'generalpvp_timeplayed',
+    'generalpvp_matchplayed',
+    'generalpvp_killassists',
+    'generalpvp_revive',
+    'generalpvp_headshot',
+    'generalpvp_penetrationkills',
+    'generalpvp_meleekills',
+    'generalpvp_matchwon',
+    'generalpvp_matchlost',
+    'generalpvp_kills',
+    'generalpvp_death',
+    'generalpvp_bullethit',
+    'generalpvp_bulletfired'];
+const secureAreaStatistics = [
+    'secureareapvp_matchwon',
+    'secureareapvp_matchlost',
+    'secureareapvp_matchplayed',
+    'secureareapvp_bestscore'];
+const rescueHostageStatistics = [
+    'rescuehostagepvp_matchwon',
+    'rescuehostagepvp_matchlost',
+    'rescuehostagepvp_matchplayed',
+    'rescuehostagepvp_bestscore'];
+const plantBombStatistics = [
+    'plantbombpvp_matchwon',
+    'plantbombpvp_matchlost',
+    'plantbombpvp_matchplayed',
+    'plantbombpvp_bestscore'];
+const casualStatistics = [
+    'casualpvp_timeplayed',
+    'casualpvp_matchwon',
+    'casualpvp_matchlost',
+    'casualpvp_matchplayed',
+    'casualpvp_kills',
+    'casualpvp_death'];
+const rankedStatistics = [
+    'rankedpvp_matchwon',
+    'rankedpvp_matchlost',
+    'rankedpvp_timeplayed',
+    'rankedpvp_matchplayed',
+    'rankedpvp_kills',
+    'rankedpvp_death'];
+
+const allStatistics = [
+    ...generalOperatorStatistics,
+    ...generalStatistics,
+    ...secureAreaStatistics,
+    ...rescueHostageStatistics,
+    ...plantBombStatistics,
+    ...casualStatistics,
+    ...rankedStatistics
+];
+
 const operatorOrganisations = {
     "zofia": {name: "Zofia", organisation: "GROM"},
     "castle": {name: "Castle", organisation: "FBI SWAT"},
@@ -65,6 +119,13 @@ const operatorOrganisations = {
 };
 
 module.exports = {
-    normalStatistics,
-    operatorOrganisations
+    generalOperatorStatistics,
+    generalStatistics,
+    secureAreaStatistics,
+    rescueHostageStatistics,
+    plantBombStatistics,
+    casualStatistics,
+    rankedStatistics,
+    allStatistics,
+    operatorOrganisations,
 };
