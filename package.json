@@ -1,6 +1,6 @@
 {
   "name": "@mbrandau/r6s-stats",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "This API queries the Rainbow Six Siege stats from any given player by name or uplayID. Multiple and mixed requests at one are also possible.",
   "main": "src/index.js",
   "scripts": {
