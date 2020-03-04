@@ -224,6 +224,7 @@ class R6sStats {
     }
 
     async getAllStatistics(playerIds, region = 'emea', season = -1, platform = 'uplay') {
+        playerIds = playerIds.map(id=>id.toLowerCase());
         const results = {};
         const [
             progressions,
@@ -241,9 +242,12 @@ class R6sStats {
                 operators: operators[id],
                 progression: progressions.find(p => p.profile_id === id),
                 rank: rankInfo[id],
-                statistics: fromEntries(Object.entries(statistics[id]).filter(([key]) => !key.startsWith("operatorpvp_")))
+                statistics: fromEntries(
+                    Object.entries(statistics[id])
+                        .filter(([key]) => !key.startsWith("operatorpvp_"))
+                )
             }
-        })
+        });
         return results;
     }
 
